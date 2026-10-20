@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import {
@@ -36,40 +36,50 @@ import {
   Pause,
   RefreshCw,
   Heart,
-  ChevronDown,
+  Quote,
+  TrendingUp,
+  LayoutGrid,
 } from "lucide-react";
-import { UserRole } from "@/types";
 
 export default function HomePage() {
-  const { kpis, switchRole, addToast, loginUser } = useApp();
+  const { kpis, switchRole, addToast } = useApp();
 
-  // ---------------- HERO CAROUSEL STATE ----------------
+  // ---------------- 1. HERO CAROUSEL STATE ----------------
   const [heroSlide, setHeroSlide] = useState(0);
   const [isHeroPaused, setIsHeroPaused] = useState(false);
 
-  // ---------------- SPECIALTIES CAROUSEL / FILTER ----------------
-  const [specialtyPage, setSpecialtyPage] = useState(0);
-
-  // ---------------- ROLE WORKSPACE FILTER ----------------
+  // ---------------- 2. WORKSPACES CAROUSEL STATE ----------------
+  const [workspaceSlide, setWorkspaceSlide] = useState(0);
+  const [workspaceViewMode, setWorkspaceViewMode] = useState<"carousel" | "grid">(
+    "carousel"
+  );
+  const [isWorkspacePaused, setIsWorkspacePaused] = useState(false);
   const [workspaceFilter, setWorkspaceFilter] = useState<
     "all" | "clinical" | "rural" | "research" | "patient"
   >("all");
 
-  // ---------------- LIVE AMMA OUTPOST ROTATOR ----------------
+  // ---------------- 3. SPECIALTIES CAROUSEL STATE ----------------
+  const [specialtySlide, setSpecialtySlide] = useState(0);
+
+  // ---------------- 4. PATIENT RECOVERY STORIES CAROUSEL STATE ----------------
+  const [storySlide, setStorySlide] = useState(0);
+
+  // ---------------- 5. LIVE AMMA OUTPOST ROTATOR ----------------
   const [activeOutpostIdx, setActiveOutpostIdx] = useState(0);
 
-  // ---------------- CARE PATHWAYS INTERACTIVE TIMELINE ----------------
+  // ---------------- 6. CARE PATHWAYS INTERACTIVE TIMELINE ----------------
   const [activePathwayStep, setActivePathwayStep] = useState(0);
 
-  // ---------------- RESEARCH TAB STATE ----------------
+  // ---------------- 7. RESEARCH TAB STATE ----------------
   const [activeResearchTab, setActiveResearchTab] = useState<
     "trial" | "manuscript" | "ai"
   >("trial");
+  const [isResearchPaused, setIsResearchPaused] = useState(false);
 
   // Quick OPD Slot Booking State
   const [opdName, setOpdName] = useState("");
   const [opdContact, setOpdContact] = useState("");
-  const [opdDept, setOpdDept] = useState("Neurology & Stroke");
+  const [opdDept, setOpdDept] = useState("Neurology & Stroke Care");
   const [opdDate, setOpdDate] = useState("Tomorrow Morning, 10:00 AM");
   const [isSubmittingOpd, setIsSubmittingOpd] = useState(false);
 
@@ -82,22 +92,72 @@ export default function HomePage() {
   const [enquiryMessage, setEnquiryMessage] = useState("");
   const [enquirySubmitted, setEnquirySubmitted] = useState(false);
 
-  // Auto-advance Hero Carousel every 6 seconds unless paused on hover
+  // 1. Auto-advance Hero Carousel every 4.2 seconds (continual movement)
   useEffect(() => {
     if (isHeroPaused) return;
     const timer = setInterval(() => {
       setHeroSlide((prev) => (prev + 1) % 3);
-    }, 6000);
+    }, 4200);
     return () => clearInterval(timer);
   }, [isHeroPaused]);
 
-  // Auto-rotate Live AMMA outposts every 4 seconds
+  // 2. Auto-advance Workspaces Carousel every 4.6 seconds
+  useEffect(() => {
+    if (isWorkspacePaused || workspaceViewMode !== "carousel") return;
+    const timer = setInterval(() => {
+      setWorkspaceSlide((prev) => (prev + 1) % 2);
+    }, 4600);
+    return () => clearInterval(timer);
+  }, [isWorkspacePaused, workspaceViewMode]);
+
+  // 3. Auto-advance Specialties Carousel every 4.0 seconds
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveOutpostIdx((prev) => (prev + 1) % 4);
+      setSpecialtySlide((prev) => (prev + 1) % 2);
     }, 4000);
     return () => clearInterval(timer);
   }, []);
+
+  // 4. Auto-advance Recovery Stories Carousel every 4.8 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStorySlide((prev) => (prev + 1) % 4);
+    }, 4800);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 5. Auto-rotate Live AMMA outposts every 3.2 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveOutpostIdx((prev) => (prev + 1) % 4);
+    }, 3200);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 6. Auto-advance Care Pathways every 5.0 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActivePathwayStep((prev) => (prev + 1) % 5);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 7. Auto-advance Research tabs every 5.2 seconds
+  useEffect(() => {
+    if (isResearchPaused) return;
+    const tabs: ("trial" | "manuscript" | "ai")[] = [
+      "trial",
+      "manuscript",
+      "ai",
+    ];
+    const timer = setInterval(() => {
+      setActiveResearchTab((prev) => {
+        const nextIdx = (tabs.indexOf(prev) + 1) % tabs.length;
+        return tabs[nextIdx];
+      });
+    }, 5200);
+    return () => clearInterval(timer);
+  }, [isResearchPaused]);
 
   const handleQuickOpdBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,7 +235,7 @@ export default function HomePage() {
     setTimeout(() => setEnquirySubmitted(false), 5000);
   };
 
-  // ---------------- HERO SLIDES DATA ----------------
+  // ---------------- 1. HERO SLIDES DATA ----------------
   const heroSlides = [
     {
       id: 0,
@@ -419,8 +479,6 @@ export default function HomePage() {
     },
   ];
 
-  const currentHero = heroSlides[heroSlide];
-
   // ---------------- LIVE TELEMETRY TICKER ITEMS ----------------
   const tickerItems = [
     {
@@ -461,7 +519,7 @@ export default function HomePage() {
     },
   ];
 
-  // ---------------- ROLE WORKSPACES DATA ----------------
+  // ---------------- 2. ROLE WORKSPACES DATA ----------------
   const roleWorkspaces = [
     {
       title: "Hospital Administrator",
@@ -542,7 +600,7 @@ export default function HomePage() {
     return ws.category === workspaceFilter;
   });
 
-  // ---------------- CLINICAL SPECIALTIES DATA ----------------
+  // ---------------- 3. CLINICAL SPECIALTIES DATA ----------------
   const keySpecialties = [
     {
       title: "Neurology & Acute Stroke Care",
@@ -600,7 +658,59 @@ export default function HomePage() {
     },
   ];
 
-  // ---------------- AMMA LIVE OUTPOST FEEDS ----------------
+  // ---------------- 4. PATIENT RECOVERY STORIES DATA ----------------
+  const patientRecoveryStories = [
+    {
+      name: "Ramesh Charan Mishra",
+      age: "58 Yrs",
+      village: "Shivgarh, Raebareli",
+      condition: "Acute Ischemic Stroke (MCA Territory)",
+      quote:
+        "“The AMMA rural health worker at Shivgarh screened my facial droop within 10 minutes. By the time the ambulance arrived at SBM Stroke ICU, my CT scan was already ordered. Within 3 hours I received IV thrombolysis, saving my right arm mobility.”",
+      badge: "Full Motor Recovery at 48h",
+      badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-300",
+      clinician: "Dr. Priya Sharma, MD (Attending Neurologist)",
+      doorToNeedle: "Door-to-Needle: 32 mins",
+    },
+    {
+      name: "Sunita Devi (ANM)",
+      age: "34 Yrs",
+      village: "Mohanlalganj Outpost #03",
+      condition: "Community Rural Outreach ANM",
+      quote:
+        "“Before AMMA clinics, patients traveled 2 hours to Lucknow or Raebareli without knowing if a doctor was present. Now, our digital tablet captures vitals and generates a secure QR token that alerts hospital reception before the patient departs.”",
+      badge: "1,420+ Villagers Screened",
+      badgeColor: "bg-teal-100 text-teal-800 border-teal-300",
+      clinician: "SBM Community Healthcare Division",
+      doorToNeedle: "Average Triage: 8 mins",
+    },
+    {
+      name: "Kamla Prasad",
+      age: "64 Yrs",
+      village: "Bachhrawan, Raebareli",
+      condition: "Hypertensive Crisis & Transient Ischemic Attack",
+      quote:
+        "“Zero paperwork confusion. SBM Hospital scanned my digital referral pass immediately at the gate. I was admitted to the Neuro-Recovery ward and prescribed citicoline therapeutics without having to repeat my medical history.”",
+      badge: "Discharged Stable",
+      badgeColor: "bg-blue-100 text-blue-800 border-blue-300",
+      clinician: "Inpatient Bed Board Team",
+      doorToNeedle: "Direct ICU Bed Allocation",
+    },
+    {
+      name: "Dr. Arvind Verma, PhD",
+      age: "46 Yrs",
+      village: "MNSRI Neuroscience Wing",
+      condition: "Translational Clinical Research",
+      quote:
+        "“By bridging grassroots primary health workers directly with tertiary neurology, we have enrolled 128 cohort patients into our neuroplasticity trials. Frontline clinical data is actively advancing our upcoming publication in The Lancet.”",
+      badge: "Lancet Paper In Review",
+      badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-300",
+      clinician: "MNSRI Principal Investigator",
+      doorToNeedle: "Phase-II Trial at 94% Accrual",
+    },
+  ];
+
+  // ---------------- 5. AMMA LIVE OUTPOST FEEDS ----------------
   const ammaOutposts = [
     {
       name: "Mohanlalganj Outpost #03",
@@ -644,7 +754,7 @@ export default function HomePage() {
     },
   ];
 
-  // ---------------- CARE PATHWAYS DATA ----------------
+  // ---------------- 6. CARE PATHWAYS DATA ----------------
   const carePathways = [
     {
       step: "01",
@@ -693,60 +803,138 @@ export default function HomePage() {
     },
   ];
 
+  const renderWorkspaceCard = (
+    ws: (typeof roleWorkspaces)[number],
+    idx: number
+  ) => {
+    const Icon = ws.icon;
+    return (
+      <div
+        key={idx}
+        className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4 hover:border-teal-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group"
+      >
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-teal-700 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+              <Icon className="w-5 h-5" />
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${ws.badgeColor}`}
+              >
+                {ws.badge}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-base font-bold text-[#0F172A] group-hover:text-teal-700 transition-colors">
+              {ws.title}
+            </h3>
+            <div className="text-xs font-semibold text-teal-700 mt-0.5">
+              Demo Persona: {ws.roleName}
+            </div>
+            <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+              {ws.desc}
+            </p>
+          </div>
+        </div>
+
+        <div className="pt-3 border-t border-slate-100 space-y-2">
+          <div className="flex items-center justify-between text-[11px] text-slate-400">
+            <span>Role Terminal:</span>
+            <span className="font-semibold text-slate-600">
+              {ws.statusPill}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                switchRole(ws.role);
+                window.location.href = ws.href;
+              }}
+              className="flex-1 py-2.5 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs shadow-xs flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
+            >
+              <span>Launch Workspace</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => switchRole(ws.role)}
+              className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
+              title="Switch active session"
+            >
+              Log In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#F4F8FA] text-[#1E293B]">
       {/* ========================================================
-          1. HERO CAROUSEL SECTION (Rich, Animated, Interactive)
+          1. HERO CAROUSEL SECTION (Physically Sliding Carousel)
          ======================================================== */}
-      <section
-        onMouseEnter={() => setIsHeroPaused(true)}
-        onMouseLeave={() => setIsHeroPaused(false)}
-        className="bg-white border-b border-slate-200 pt-8 pb-14 relative overflow-hidden transition-colors"
-      >
+      <section className="bg-white border-b border-slate-200 pt-6 pb-12 relative overflow-hidden transition-colors">
         {/* Subtle decorative background gradients */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-teal-500/5 rounded-full blur-3xl -z-10 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-3xl -z-10 pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Carousel Top Controls: Slide Pills & Auto-Play Status */}
-          <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-100">
-            <div className="flex items-center space-x-2">
+          {/* Carousel Top Navigation Bar with Progress & Controls */}
+          <div className="flex items-center justify-between mb-5 pb-2.5 border-b border-slate-100">
+            <div className="flex items-center space-x-2.5">
               <span className="w-2.5 h-2.5 rounded-full bg-teal-600 animate-pulse" />
-              <span className="text-xs font-black tracking-wider uppercase text-slate-700">
+              <span className="text-xs font-black tracking-wider uppercase text-slate-800">
                 Pillars of SBM Hospitals & MNSRI
               </span>
-              <span className="text-xs font-mono text-slate-400">
-                (Slide {heroSlide + 1} of {heroSlides.length})
+              <span className="text-xs font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                Slide 0{heroSlide + 1} / 0{heroSlides.length}
               </span>
             </div>
 
-            <div className="flex items-center space-x-2">
-              {/* Slide indicators / tabs */}
-              <div className="flex items-center space-x-1.5">
+            <div className="flex items-center space-x-3">
+              {/* Interactive Slide Jump Dots with Animated Progress Bar */}
+              <div className="flex items-center space-x-2">
                 {heroSlides.map((slide, idx) => (
                   <button
                     key={slide.id}
                     onClick={() => setHeroSlide(idx)}
-                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    className={`relative h-2.5 rounded-full overflow-hidden transition-all duration-500 cursor-pointer ${
                       heroSlide === idx
-                        ? "w-8 bg-teal-600"
-                        : "w-2.5 bg-slate-300 hover:bg-slate-400"
+                        ? "w-14 bg-teal-100 border border-teal-300 shadow-xs"
+                        : "w-3 bg-slate-300 hover:bg-slate-400"
                     }`}
-                    title={`Jump to Slide ${idx + 1}`}
+                    title={`Go to Slide ${idx + 1}: ${slide.title}`}
                     aria-label={`Slide ${idx + 1}`}
-                  />
+                  >
+                    {heroSlide === idx && !isHeroPaused && (
+                      <span
+                        key={`hero-timer-${heroSlide}`}
+                        className="absolute inset-0 bg-teal-600 animate-slide-progress rounded-full"
+                      />
+                    )}
+                    {heroSlide === idx && isHeroPaused && (
+                      <span className="absolute inset-0 bg-teal-600 rounded-full" />
+                    )}
+                  </button>
                 ))}
               </div>
 
               {/* Prev / Next Arrows */}
-              <div className="flex items-center space-x-1 pl-2">
+              <div className="flex items-center space-x-1 pl-1">
                 <button
                   onClick={() =>
                     setHeroSlide((prev) =>
                       prev === 0 ? heroSlides.length - 1 : prev - 1
                     )
                   }
-                  className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer transition-colors"
+                  className="p-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 cursor-pointer shadow-xs transition-colors"
                   aria-label="Previous slide"
                   title="Previous slide"
                 >
@@ -756,7 +944,7 @@ export default function HomePage() {
                   onClick={() =>
                     setHeroSlide((prev) => (prev + 1) % heroSlides.length)
                   }
-                  className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer transition-colors"
+                  className="p-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 cursor-pointer shadow-xs transition-colors"
                   aria-label="Next slide"
                   title="Next slide"
                 >
@@ -764,141 +952,154 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* Pause / Play Indicator */}
+              {/* Pause / Play Control */}
               <button
                 onClick={() => setIsHeroPaused(!isHeroPaused)}
-                className="hidden sm:flex items-center space-x-1 text-[11px] font-semibold text-slate-400 hover:text-slate-600 px-2 py-1 rounded bg-slate-50 border border-slate-200"
-                title={isHeroPaused ? "Resume auto-rotation" : "Pause auto-rotation"}
+                className="flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer border border-slate-200"
+                title={isHeroPaused ? "Resume auto-rotation" : "Pause rotation"}
               >
                 {isHeroPaused ? (
                   <>
-                    <Play className="w-3 h-3 text-teal-600" />
-                    <span>Paused</span>
+                    <Play className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Play</span>
                   </>
                 ) : (
                   <>
-                    <Pause className="w-3 h-3 text-slate-400" />
-                    <span>Auto-Play</span>
+                    <Pause className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Pause</span>
                   </>
                 )}
               </button>
             </div>
           </div>
 
-          {/* Active Carousel Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            {/* Left Column: Headline, Supporting Text, CTAs */}
-            <div className="lg:col-span-7 space-y-5 text-left animate-in fade-in duration-300">
-              {/* Institutional Location Badge */}
-              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
-                <span>{currentHero.badge}</span>
-              </div>
+          {/* Physically Moving Sliding Carousel Track */}
+          <div className="overflow-hidden w-full relative rounded-3xl">
+            <div
+              className="flex transition-transform duration-700 ease-out will-change-transform"
+              style={{ transform: `translateX(-${heroSlide * 100}%)` }}
+            >
+              {heroSlides.map((slide) => (
+                <div key={slide.id} className="w-full shrink-0">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-2">
+                    {/* Left Column: Headline, Supporting Text, CTAs */}
+                    <div className="lg:col-span-7 space-y-5 text-left">
+                      {/* Institutional Location Badge */}
+                      <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold shadow-xs">
+                        <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
+                        <span>{slide.badge}</span>
+                      </div>
 
-              {/* Exact Required Headline */}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0F172A] tracking-tight leading-[1.12]">
-                {currentHero.title}{" "}
-                <span className={currentHero.color}>
-                  {currentHero.highlight}
-                </span>
-              </h1>
+                      {/* Exact Required Headline */}
+                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0F172A] tracking-tight leading-[1.12]">
+                        {slide.title}{" "}
+                        <span className={slide.color}>{slide.highlight}</span>
+                      </h1>
 
-              {/* Exact Required Supporting Text */}
-              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-                {currentHero.description}
-              </p>
+                      {/* Exact Required Supporting Text */}
+                      <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
+                        {slide.description}
+                      </p>
 
-              {/* Key Quick Highlight Pills */}
-              <div className="grid grid-cols-3 gap-2 py-1 max-w-xl">
-                {currentHero.stats.map((s, idx) => (
-                  <div
-                    key={idx}
-                    className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-left"
-                  >
-                    <div className="text-xs font-bold text-slate-900 font-mono">
-                      {s.val}
+                      {/* Key Quick Highlight Pills */}
+                      <div className="grid grid-cols-3 gap-2.5 py-1 max-w-xl">
+                        {slide.stats.map((s, sIdx) => (
+                          <div
+                            key={sIdx}
+                            className="p-3 rounded-2xl bg-[#F4F8FA] border border-slate-200 text-left hover:border-teal-300 transition-colors"
+                          >
+                            <div className="text-xs sm:text-sm font-black text-slate-900 font-mono">
+                              {s.val}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-semibold truncate mt-0.5">
+                              {s.label}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Required Action CTAs */}
+                      <div className="flex flex-wrap items-center gap-3 pt-1">
+                        <Link
+                          href={slide.primaryCta.href}
+                          className="px-6 py-3.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-sm shadow-md shadow-teal-600/20 flex items-center space-x-2 transition-all hover:scale-[1.02] cursor-pointer"
+                        >
+                          <slide.primaryCta.icon className="w-4 h-4" />
+                          <span>{slide.primaryCta.label}</span>
+                          <ArrowRight className="w-4 h-4 ml-1" />
+                        </Link>
+
+                        <Link
+                          href={slide.secondaryCta.href}
+                          className="px-5 py-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-sm shadow-xs flex items-center space-x-2 transition-all cursor-pointer"
+                        >
+                          <slide.secondaryCta.icon className="w-4 h-4 text-teal-700" />
+                          <span>{slide.secondaryCta.label}</span>
+                        </Link>
+
+                        <Link
+                          href={slide.tertiaryCta.href}
+                          className="px-4 py-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold text-sm flex items-center space-x-2 transition-all cursor-pointer"
+                        >
+                          <slide.tertiaryCta.icon className="w-4 h-4 text-emerald-600" />
+                          <span>{slide.tertiaryCta.label}</span>
+                        </Link>
+                      </div>
+
+                      {/* Verification & Demo Notice */}
+                      <div className="pt-1 flex items-center space-x-2 text-xs text-slate-500">
+                        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                        <span>
+                          Interactive client demonstration prototype. Sample data and statistics are clearly labeled for demonstration purposes.
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-[10px] text-slate-500 font-medium truncate">
-                      {s.label}
+
+                    {/* Right Column: Dynamic Floating Telemetry Cards */}
+                    <div className="lg:col-span-5 grid grid-cols-2 gap-4">
+                      {slide.cards.map((card, cIdx) => {
+                        const Icon = card.icon;
+                        return (
+                          <div
+                            key={cIdx}
+                            className={`p-5 rounded-2xl bg-white border ${card.borderColor} shadow-xs hover:shadow-xl transition-all transform hover:-translate-y-1.5 cursor-default ${card.floatClass}`}
+                          >
+                            <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                              <span className="truncate pr-1">{card.title}</span>
+                              <Icon
+                                className={`w-4 h-4 ${card.iconColor} shrink-0`}
+                              />
+                            </div>
+
+                            <div
+                              className={`text-2xl sm:text-3xl font-black mt-2 font-mono ${card.textColor}`}
+                            >
+                              {card.val}
+                            </div>
+
+                            <div className="text-xs font-bold text-slate-700 mt-1 truncate">
+                              {card.sub}
+                            </div>
+
+                            <div className="text-[11px] text-slate-400 mt-0.5 truncate">
+                              {card.footer}
+                            </div>
+
+                            <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                              <span className="font-semibold text-slate-400">
+                                Live
+                              </span>
+                              <span className="font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100">
+                                {card.livePill}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Required Action CTAs */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Link
-                  href={currentHero.primaryCta.href}
-                  className="px-6 py-3.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-sm shadow-md shadow-teal-600/20 flex items-center space-x-2 transition-all hover:scale-[1.02] cursor-pointer"
-                >
-                  <currentHero.primaryCta.icon className="w-4 h-4" />
-                  <span>{currentHero.primaryCta.label}</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-
-                <Link
-                  href={currentHero.secondaryCta.href}
-                  className="px-5 py-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-sm shadow-xs flex items-center space-x-2 transition-all cursor-pointer"
-                >
-                  <currentHero.secondaryCta.icon className="w-4 h-4 text-teal-700" />
-                  <span>{currentHero.secondaryCta.label}</span>
-                </Link>
-
-                <Link
-                  href={currentHero.tertiaryCta.href}
-                  className="px-4 py-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold text-sm flex items-center space-x-2 transition-all cursor-pointer"
-                >
-                  <currentHero.tertiaryCta.icon className="w-4 h-4 text-emerald-600" />
-                  <span>{currentHero.tertiaryCta.label}</span>
-                </Link>
-              </div>
-
-              {/* Verification & Demo Notice */}
-              <div className="pt-2 flex items-center space-x-2 text-xs text-slate-500">
-                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>
-                  Interactive client demonstration prototype. Sample data and statistics are clearly labeled for demonstration purposes.
-                </span>
-              </div>
-            </div>
-
-            {/* Right Column: Moving Dynamic Telemetry Cards */}
-            <div className="lg:col-span-5 grid grid-cols-2 gap-4">
-              {currentHero.cards.map((card, idx) => {
-                const Icon = card.icon;
-                return (
-                  <div
-                    key={idx}
-                    className={`p-5 rounded-2xl bg-white border ${card.borderColor} shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-default ${card.floatClass}`}
-                  >
-                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
-                      <span className="truncate pr-1">{card.title}</span>
-                      <Icon className={`w-4 h-4 ${card.iconColor} shrink-0`} />
-                    </div>
-
-                    <div
-                      className={`text-2xl sm:text-3xl font-black mt-2 font-mono ${card.textColor}`}
-                    >
-                      {card.val}
-                    </div>
-
-                    <div className="text-xs font-bold text-slate-700 mt-1 truncate">
-                      {card.sub}
-                    </div>
-
-                    <div className="text-[11px] text-slate-400 mt-1 truncate">
-                      {card.footer}
-                    </div>
-
-                    <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
-                      <span className="font-semibold text-slate-400">Status</span>
-                      <span className="font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">
-                        {card.livePill}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -910,21 +1111,20 @@ export default function HomePage() {
       <div className="bg-[#0F172A] text-white border-y border-slate-800 py-3 overflow-hidden shadow-inner relative z-10">
         <div className="max-w-7xl mx-auto px-4 flex items-center">
           {/* Ticker Fixed Header Badge */}
-          <div className="flex items-center space-x-2 bg-teal-600/90 text-white px-3 py-1 rounded-lg text-xs font-extrabold uppercase shrink-0 mr-4 shadow-xs">
+          <div className="flex items-center space-x-2 bg-teal-600 text-white px-3 py-1 rounded-lg text-xs font-extrabold uppercase shrink-0 mr-4 shadow-sm">
             <Radio className="w-3.5 h-3.5 text-white animate-pulse" />
-            <span>Live Telemetry</span>
+            <span>Live Stream</span>
           </div>
 
-          {/* Marquee Track (Smooth Hardware Accelerated) */}
+          {/* Marquee Track (Continuous Hardware-Accelerated Smooth Motion) */}
           <div className="overflow-hidden flex-1 relative">
             <div className="animate-marquee whitespace-nowrap space-x-6 text-xs text-slate-200">
-              {/* Loop items twice for seamless infinite continuous scroll */}
               {[...tickerItems, ...tickerItems].map((item, idx) => {
                 const ItemIcon = item.icon;
                 return (
                   <div
                     key={idx}
-                    className="inline-flex items-center space-x-2 bg-slate-800/80 hover:bg-slate-800 px-3 py-1 rounded-lg border border-slate-700 cursor-pointer transition-colors"
+                    className="inline-flex items-center space-x-2 bg-slate-800/90 hover:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 cursor-pointer transition-colors"
                   >
                     <span
                       className={`text-[9px] font-black px-1.5 py-0.5 rounded ${item.color}`}
@@ -944,9 +1144,9 @@ export default function HomePage() {
       </div>
 
       {/* ========================================================
-          3. ROLE-BASED WORKSPACES LAUNCHER (Interactive Filter Cards)
+          3. ROLE-BASED WORKSPACES CAROUSEL & FILTER
          ======================================================== */}
-      <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-extrabold mb-2">
             <Users className="w-3.5 h-3.5" />
@@ -959,7 +1159,7 @@ export default function HomePage() {
             Experience realistic end-to-end hospital workflows by entering as an Administrator, Doctor, Receptionist, Rural Clinic Worker, Researcher, or Patient.
           </p>
 
-          {/* Interactive Workspace Category Filter Buttons */}
+          {/* Category Filter Tabs */}
           <div className="flex flex-wrap items-center justify-center gap-1.5 pt-4">
             {(
               [
@@ -985,77 +1185,105 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Dynamic Moving Workspace Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
-          {filteredWorkspaces.map((ws, idx) => {
-            const Icon = ws.icon;
-            return (
-              <div
-                key={idx}
-                className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4 hover:border-teal-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5 group"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-teal-700 group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${ws.badgeColor}`}
-                      >
-                        {ws.badge}
-                      </span>
-                    </div>
-                  </div>
+        {/* Workspaces Display Controls Bar (Carousel vs Grid + Navigation) */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 pb-1 border-b border-slate-100">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-bold text-slate-700">Display Mode:</span>
+            <button
+              onClick={() => setWorkspaceViewMode("carousel")}
+              className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer ${
+                workspaceViewMode === "carousel"
+                  ? "bg-teal-600 text-white shadow-xs"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Carousel</span>
+            </button>
+            <button
+              onClick={() => setWorkspaceViewMode("grid")}
+              className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer ${
+                workspaceViewMode === "grid"
+                  ? "bg-teal-600 text-white shadow-xs"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <LayoutGrid className="w-3 h-3" />
+              <span>Grid View</span>
+            </button>
+          </div>
 
-                  <div>
-                    <h3 className="text-base font-bold text-[#0F172A] group-hover:text-teal-700 transition-colors">
-                      {ws.title}
-                    </h3>
-                    <div className="text-xs font-semibold text-teal-700 mt-0.5">
-                      Demo Persona: {ws.roleName}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                      {ws.desc}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Role Terminal:</span>
-                    <span className="font-semibold text-slate-600">
-                      {ws.statusPill}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        switchRole(ws.role);
-                        window.location.href = ws.href;
-                      }}
-                      className="flex-1 py-2.5 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs shadow-xs flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
-                    >
-                      <span>Launch Workspace</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => switchRole(ws.role)}
-                      className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
-                      title="Switch active session"
-                    >
-                      Log In
-                    </button>
-                  </div>
-                </div>
+          {workspaceViewMode === "carousel" && workspaceFilter === "all" && (
+            <div className="flex items-center space-x-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Cards Page {workspaceSlide + 1} of 2
+              </span>
+              <div className="flex items-center space-x-1.5 mx-1">
+                {[0, 1].map((pIdx) => (
+                  <button
+                    key={pIdx}
+                    onClick={() => setWorkspaceSlide(pIdx)}
+                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                      workspaceSlide === pIdx ? "w-6 bg-teal-600" : "w-2 bg-slate-300"
+                    }`}
+                    aria-label={`Workspace Page ${pIdx + 1}`}
+                  />
+                ))}
               </div>
-            );
-          })}
+
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => setWorkspaceSlide((prev) => (prev === 0 ? 1 : 0))}
+                  className="p-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer shadow-xs transition-colors"
+                  aria-label="Previous workspaces"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setWorkspaceSlide((prev) => (prev === 1 ? 0 : 1))}
+                  className="p-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer shadow-xs transition-colors"
+                  aria-label="Next workspaces"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setIsWorkspacePaused(!isWorkspacePaused)}
+                  className="p-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer shadow-xs"
+                  title={isWorkspacePaused ? "Resume auto-rotation" : "Pause auto-rotation"}
+                >
+                  {isWorkspacePaused ? (
+                    <Play className="w-3.5 h-3.5 text-teal-600" />
+                  ) : (
+                    <Pause className="w-3.5 h-3.5 text-slate-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Dynamic Moving Workspace Cards Carousel / Grid Content */}
+        {workspaceViewMode === "carousel" && workspaceFilter === "all" ? (
+          <div className="overflow-hidden w-full relative pt-2">
+            <div
+              className="flex transition-transform duration-700 ease-out will-change-transform"
+              style={{ transform: `translateX(-${workspaceSlide * 100}%)` }}
+            >
+              {/* Page 1 (3 items) */}
+              <div className="w-full shrink-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {roleWorkspaces.slice(0, 3).map((ws, idx) => renderWorkspaceCard(ws, idx))}
+              </div>
+              {/* Page 2 (3 items) */}
+              <div className="w-full shrink-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {roleWorkspaces.slice(3, 6).map((ws, idx) => renderWorkspaceCard(ws, idx + 3))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+            {filteredWorkspaces.map((ws, idx) => renderWorkspaceCard(ws, idx))}
+          </div>
+        )}
       </section>
 
       {/* ========================================================
@@ -1156,10 +1384,10 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================
-          5. SECTION 2: CLINICAL CAPABILITIES & SPECIALTIES
-             (Interactive Moving Carousel / Grid)
+          5. SECTION 2: CLINICAL SPECIALTIES CAROUSEL
+             (Sliding Carousel of Specialties with Auto-Motion)
          ======================================================== */}
-      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-extrabold mb-2">
@@ -1170,27 +1398,34 @@ export default function HomePage() {
               Comprehensive Hospital Services & Specialties
             </h2>
             <p className="text-slate-500 text-xs sm:text-sm mt-1">
-              Explore primary, emergency, inpatient, and specialized neurological care available across SBM Hospitals and MNSRI.
+              Explore primary, emergency, inpatient, and specialized neurological care across SBM Hospitals and MNSRI.
             </p>
           </div>
 
-          {/* Specialty Slider Controls */}
+          {/* Specialty Carousel Controls */}
           <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 mr-2">
+              {[0, 1].map((pIdx) => (
+                <button
+                  key={pIdx}
+                  onClick={() => setSpecialtySlide(pIdx)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    specialtySlide === pIdx ? "w-6 bg-teal-600" : "w-2 bg-slate-300"
+                  }`}
+                  aria-label={`Page ${pIdx + 1}`}
+                />
+              ))}
+            </div>
             <button
-              onClick={() => setSpecialtyPage((prev) => Math.max(0, prev - 1))}
-              disabled={specialtyPage === 0}
-              className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 cursor-pointer transition-colors shadow-xs"
+              onClick={() => setSpecialtySlide((prev) => (prev === 0 ? 1 : 0))}
+              className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer shadow-xs"
               aria-label="Previous specialties"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs font-bold text-slate-600 px-2 font-mono">
-              {specialtyPage + 1} / 2
-            </span>
             <button
-              onClick={() => setSpecialtyPage((prev) => Math.min(1, prev + 1))}
-              disabled={specialtyPage === 1}
-              className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 cursor-pointer transition-colors shadow-xs"
+              onClick={() => setSpecialtySlide((prev) => (prev === 1 ? 0 : 1))}
+              className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer shadow-xs"
               aria-label="Next specialties"
             >
               <ChevronRight className="w-4 h-4" />
@@ -1198,55 +1433,110 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 6 Interactive Specialty Cards with Dynamic Hover Lifting */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {keySpecialties
-            .slice(specialtyPage * 3, specialtyPage * 3 + 3)
-            .map((spec, idx) => {
-              const Icon = spec.icon;
-              return (
-                <div
-                  key={idx}
-                  className={`p-6 rounded-2xl border ${spec.color} shadow-xs flex flex-col justify-between space-y-4 hover:shadow-xl hover:border-teal-400 transition-all duration-300 transform hover:-translate-y-1.5 group`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${spec.iconColor} group-hover:scale-110 transition-transform`}
-                      >
-                        <Icon className="w-5 h-5" />
+        {/* Sliding Specialties Track */}
+        <div className="overflow-hidden w-full relative">
+          <div
+            className="flex transition-transform duration-700 ease-out will-change-transform"
+            style={{ transform: `translateX(-${specialtySlide * 100}%)` }}
+          >
+            {/* Slide Page 1 (3 items) */}
+            <div className="w-full shrink-0 grid grid-cols-1 md:grid-cols-3 gap-6">
+              {keySpecialties.slice(0, 3).map((spec, idx) => {
+                const Icon = spec.icon;
+                return (
+                  <div
+                    key={idx}
+                    className={`p-6 rounded-2xl border ${spec.color} shadow-xs flex flex-col justify-between space-y-4 hover:shadow-xl hover:border-teal-400 transition-all duration-300 transform hover:-translate-y-2 group`}
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center ${spec.iconColor} group-hover:scale-110 transition-transform`}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700">
+                          {spec.badge}
+                        </span>
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700">
-                        {spec.badge}
-                      </span>
+
+                      <div>
+                        <h3 className="text-base font-bold text-[#0F172A] group-hover:text-teal-700 transition-colors">
+                          {spec.title}
+                        </h3>
+                        <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                          {spec.desc}
+                        </p>
+                      </div>
                     </div>
 
-                    <div>
-                      <h3 className="text-base font-bold text-[#0F172A] group-hover:text-teal-700 transition-colors">
-                        {spec.title}
-                      </h3>
-                      <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                        {spec.desc}
-                      </p>
+                    <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
+                      <div className="text-[11px] font-bold text-teal-700">
+                        {spec.metric}
+                      </div>
+                      <Link
+                        href="/appointments"
+                        onClick={() => setOpdDept(spec.title)}
+                        className="text-xs font-bold text-slate-800 hover:text-teal-700 flex items-center space-x-1"
+                      >
+                        <span>Book Specialist</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
                     </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
-                    <div className="text-[11px] font-bold text-teal-700">
-                      {spec.metric}
+            {/* Slide Page 2 (3 items) */}
+            <div className="w-full shrink-0 grid grid-cols-1 md:grid-cols-3 gap-6">
+              {keySpecialties.slice(3, 6).map((spec, idx) => {
+                const Icon = spec.icon;
+                return (
+                  <div
+                    key={idx}
+                    className={`p-6 rounded-2xl border ${spec.color} shadow-xs flex flex-col justify-between space-y-4 hover:shadow-xl hover:border-teal-400 transition-all duration-300 transform hover:-translate-y-2 group`}
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center ${spec.iconColor} group-hover:scale-110 transition-transform`}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700">
+                          {spec.badge}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h3 className="text-base font-bold text-[#0F172A] group-hover:text-teal-700 transition-colors">
+                          {spec.title}
+                        </h3>
+                        <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                          {spec.desc}
+                        </p>
+                      </div>
                     </div>
-                    <Link
-                      href="/appointments"
-                      onClick={() => setOpdDept(spec.title)}
-                      className="text-xs font-bold text-slate-800 hover:text-teal-700 flex items-center space-x-1"
-                    >
-                      <span>Book Slot</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
+
+                    <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
+                      <div className="text-[11px] font-bold text-teal-700">
+                        {spec.metric}
+                      </div>
+                      <Link
+                        href="/appointments"
+                        onClick={() => setOpdDept(spec.title)}
+                        className="text-xs font-bold text-slate-800 hover:text-teal-700 flex items-center space-x-1"
+                      >
+                        <span>Book Specialist</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         <div className="text-center pt-2">
@@ -1342,7 +1632,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Card: Interactive Moving AMMA Village Outposts Feed */}
+            {/* Right Card: Interactive Moving AMMA Village Outposts Carousel */}
             <div className="lg:col-span-5">
               <div className="p-6 rounded-3xl bg-[#F4F8FA] border border-slate-200 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200">
@@ -1352,12 +1642,14 @@ export default function HomePage() {
                       Live Rural Outpost Telemetry
                     </span>
                   </div>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                    42 Outposts
-                  </span>
+                  <div className="flex items-center space-x-1 text-xs">
+                    <span className="font-mono font-bold text-teal-700">
+                      Outpost {activeOutpostIdx + 1}/4
+                    </span>
+                  </div>
                 </div>
 
-                {/* Moving Outpost Cards Rotator */}
+                {/* Moving Outpost Cards Rotator with Active Slide Indicator */}
                 <div className="space-y-2.5 text-xs">
                   {ammaOutposts.map((outpost, idx) => {
                     const isActive = activeOutpostIdx === idx;
@@ -1365,10 +1657,10 @@ export default function HomePage() {
                       <div
                         key={idx}
                         onClick={() => setActiveOutpostIdx(idx)}
-                        className={`p-3.5 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                        className={`p-3.5 rounded-2xl border transition-all duration-500 cursor-pointer ${
                           isActive
-                            ? "bg-white border-teal-500 shadow-md ring-2 ring-teal-500/20"
-                            : "bg-white/80 border-slate-200 hover:border-slate-300 opacity-75 hover:opacity-100"
+                            ? "bg-white border-teal-500 shadow-md ring-2 ring-teal-500/20 scale-[1.02]"
+                            : "bg-white/80 border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100"
                         }`}
                       >
                         <div className="flex items-center justify-between font-bold">
@@ -1407,7 +1699,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="text-[11px] text-slate-500 italic text-center pt-1">
-                  *Click any outpost card above to inspect real-time rural vitals and referral telemetry.
+                  *Auto-cycling live feeds across 42 rural outposts. Click any card to freeze and review.
                 </div>
               </div>
             </div>
@@ -1416,7 +1708,122 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================
-          7. SECTION 4: OPD APPOINTMENT BOOKING FORM
+          7. PATIENT RECOVERY STORIES CAROUSEL (Moving Carousel)
+         ======================================================== */}
+      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold mb-2">
+              <HeartPulse className="w-3.5 h-3.5" />
+              <span>Real Clinical Impact</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
+              Patient Recovery & Community Stories
+            </h2>
+            <p className="text-slate-500 text-xs sm:text-sm mt-1">
+              Read first-hand accounts from patients, rural ANMs, and neurologists experiencing the integrated care model.
+            </p>
+          </div>
+
+          {/* Testimonials Carousel Controls */}
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 mr-2">
+              {patientRecoveryStories.map((_, sIdx) => (
+                <button
+                  key={sIdx}
+                  onClick={() => setStorySlide(sIdx)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    storySlide === sIdx ? "w-6 bg-teal-600" : "w-2 bg-slate-300"
+                  }`}
+                  aria-label={`Story ${sIdx + 1}`}
+                />
+              ))}
+            </div>
+            <button
+              onClick={() =>
+                setStorySlide((prev) =>
+                  prev === 0 ? patientRecoveryStories.length - 1 : prev - 1
+                )
+              }
+              className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer shadow-xs"
+              aria-label="Previous story"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() =>
+                setStorySlide(
+                  (prev) => (prev + 1) % patientRecoveryStories.length
+                )
+              }
+              className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer shadow-xs"
+              aria-label="Next story"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Sliding Recovery Stories Track */}
+        <div className="overflow-hidden w-full relative rounded-3xl">
+          <div
+            className="flex transition-transform duration-700 ease-out will-change-transform"
+            style={{ transform: `translateX(-${storySlide * 100}%)` }}
+          >
+            {patientRecoveryStories.map((story, idx) => (
+              <div key={idx} className="w-full shrink-0">
+                <div className="p-8 sm:p-10 rounded-3xl bg-[#0F172A] text-white shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+                    <div className="flex items-center space-x-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center font-black text-lg">
+                        {story.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-white">
+                          {story.name}
+                        </h4>
+                        <div className="text-xs text-slate-400">
+                          {story.age} • {story.village}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`text-xs font-bold px-3 py-1 rounded-full border ${story.badgeColor}`}
+                      >
+                        {story.badge}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-base sm:text-lg text-slate-200 italic leading-relaxed py-6">
+                    {story.quote}
+                  </p>
+
+                  <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800 text-xs">
+                    <div className="text-slate-400">
+                      Clinical Case: <strong className="text-white">{story.condition}</strong>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className="font-mono text-teal-400 font-bold">
+                        {story.doorToNeedle}
+                      </span>
+                      <span className="text-slate-500">•</span>
+                      <span className="text-slate-300">{story.clinician}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          8. SECTION 4: OPD APPOINTMENT BOOKING FORM
          ======================================================== */}
       <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -1567,7 +1974,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================
-          8. SECTION 5: NEUROSCIENCE & STROKE RESEARCH (MNSRI)
+          9. SECTION 5: NEUROSCIENCE & STROKE RESEARCH (MNSRI)
              (With Interactive Study & Milestone Tabs)
          ======================================================== */}
       <section className="py-16 bg-white border-y border-slate-200">
@@ -1615,6 +2022,24 @@ export default function HomePage() {
                 }`}
               >
                 AI Research Evidence Explorer
+              </button>
+
+              <button
+                onClick={() => setIsResearchPaused(!isResearchPaused)}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold flex items-center space-x-1 cursor-pointer border border-slate-200"
+                title={isResearchPaused ? "Resume auto-rotation" : "Pause auto-rotation"}
+              >
+                {isResearchPaused ? (
+                  <>
+                    <Play className="w-3 h-3 text-indigo-600" />
+                    <span className="text-[10px]">Play</span>
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-3 h-3 text-slate-500" />
+                    <span className="text-[10px]">Auto</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -1790,8 +2215,8 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================
-          9. SECTION 6: INTEGRATED 5-STEP CARE PATHWAY
-             (Interactive Step Timeline & Spotlight Card)
+          10. SECTION 6: INTEGRATED 5-STEP CARE PATHWAY
+             (Interactive Moving Step Stepper & Spotlight)
          ======================================================== */}
       <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="text-center max-w-2xl mx-auto">
@@ -1803,7 +2228,7 @@ export default function HomePage() {
             Integrated 5-Step Patient Care Pathway
           </h2>
           <p className="text-slate-500 text-xs sm:text-sm mt-1">
-            Click any step below to see how rural outreach, reception, doctor encounters, bed allocation, and research unify seamlessly.
+            Auto-advancing interactive pathway demonstrating seamless handoffs between village ANMs, hospital reception, neurologists, bed census, and research.
           </p>
         </div>
 
@@ -1815,7 +2240,7 @@ export default function HomePage() {
               <button
                 key={idx}
                 onClick={() => setActivePathwayStep(idx)}
-                className={`p-3.5 rounded-2xl border text-left transition-all duration-200 cursor-pointer ${
+                className={`p-3.5 rounded-2xl border text-left transition-all duration-300 cursor-pointer ${
                   isActive
                     ? "bg-teal-600 text-white border-teal-600 shadow-lg scale-[1.03]"
                     : "bg-white text-slate-700 border-slate-200 hover:border-teal-300"
@@ -1842,7 +2267,7 @@ export default function HomePage() {
         </div>
 
         {/* Active Pathway Spotlight Card */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-teal-300 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in duration-200">
+        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-teal-300 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in duration-300">
           <div className="space-y-3 max-w-2xl">
             <div className="flex items-center space-x-2">
               <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 font-mono">
@@ -1884,7 +2309,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================
-          10. SECTION 7: PATIENT & COMMUNITY BENEFITS
+          11. SECTION 7: PATIENT & COMMUNITY BENEFITS
          ======================================================== */}
       <section className="py-16 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1942,7 +2367,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================
-          11. SECTION 8: CONTACT AND LOCATION INFORMATION
+          12. SECTION 8: CONTACT AND LOCATION INFORMATION
          ======================================================== */}
       <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -2056,7 +2481,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================
-          12. COMPREHENSIVE FOOTER
+          13. COMPREHENSIVE FOOTER
          ======================================================== */}
       <footer className="bg-[#0F172A] text-white py-12 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 text-xs">
